@@ -5,12 +5,13 @@ class TestCase:
         self.test_method_name = test_method_name
 
     def run(self, result=None):
+        """Executa o método de teste e coleta resultados, se result for fornecido."""
         if result:
-            result.test_started()
+            result.test_started()  # marca início do teste
         self.set_up()
         try:
             test_method = getattr(self, self.test_method_name)
-            test_method()
+            test_method()  # executa o teste
         except AssertionError:
             if result:
                 result.add_failure(self.test_method_name)
@@ -47,6 +48,7 @@ class MyTest(TestCase):
 
 # rodar os testes manualmente
 if __name__ == "__main__":
+    # Sem coletar resultados
     test = MyTest('test_a')
     test.run()
     test = MyTest('test_b')
@@ -54,3 +56,14 @@ if __name__ == "__main__":
     test = MyTest('test_c')
     test.run()
 
+    # Com TestResult
+    from test_result import TestResult
+    result = TestResult()
+    test = MyTest('test_a')
+    test.run(result)
+    test = MyTest('test_b')
+    test.run(result)
+    test = MyTest('test_c')
+    test.run(result)
+
+    print(result.summary())
