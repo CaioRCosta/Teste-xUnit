@@ -1,0 +1,127 @@
+from test_case import TestCase
+from test_result import TestResult
+from test_stub import TestStub
+from test_suite import TestSuite
+
+
+class TestSpy(TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.was_run = False
+        self.was_set_up = False
+        self.was_tear_down = False
+        self.log = ""
+
+    def set_up(self):
+        self.was_set_up = True
+        self.log += "set_up "
+
+    def test_method(self):
+        self.was_run = True
+        self.log += "test_method "
+
+    def tear_down(self):
+        self.was_tear_down = True
+        self.log += "tear_down"
+
+class TestCaseTest(TestCase):
+
+    def test_result_success_run(self):
+        result = TestResult()
+        stub = TestStub('test_success')
+        stub.run(result)
+        assert result.summary() == '1 run, 0 failed, 0 error'
+
+    def test_result_failure_run(self):
+        result = TestResult()
+        stub = TestStub('test_failure')
+        stub.run(result)
+        assert result.summary() == '1 run, 1 failed, 0 error'
+
+    def test_result_error_run(self):
+        result = TestResult()
+        stub = TestStub('test_error')
+        stub.run(result)
+        assert result.summary() == '1 run, 0 failed, 1 error'
+
+    def test_result_multiple_run(self):
+        result = TestResult()
+        TestStub('test_success').run(result)
+        TestStub('test_failure').run(result)
+        TestStub('test_error').run(result)
+        assert result.summary() == '3 run, 1 failed, 1 error'
+
+    def test_was_set_up(self):
+        spy = TestSpy('test_method')
+        spy.run(TestResult())
+        assert spy.was_set_up
+
+    def test_was_run(self):
+        spy = TestSpy('test_method')
+        spy.run(TestResult())
+        assert spy.was_run
+
+    def test_was_tear_down(self):
+        spy = TestSpy('test_method')
+        spy.run(TestResult())
+        assert spy.was_tear_down
+
+    def test_template_method(self):
+        spy = TestSpy('test_method')
+        spy.run(TestResult())
+        assert spy.log == "set_up test_method tear_down"
+
+
+class TestSuiteTest(TestCase):
+
+    def test_suite_size(self):
+        suite = TestSuite()
+        suite.add_test(TestStub('test_success'))
+        suite.add_test(TestStub('test_failure'))
+        suite.add_test(TestStub('test_error'))
+        assert len(suite.tests) == 3
+
+    def test_suite_success_run(self):
+        result = TestResult()
+        suite = TestSuite()
+        suite.add_test(TestStub('test_success'))
+        suite.run(result)
+        assert result.summary() == '1 run, 0 failed, 0 error'
+
+    def test_suite_multiple_run(self):
+        result = TestResult()
+        suite = TestSuite()
+        suite.add_test(TestStub('test_success'))
+        suite.add_test(TestStub('test_failure'))
+        suite.add_test(TestStub('test_error'))
+        suite.run(result)
+        assert result.summary() == '3 run, 1 failed, 1 error'
+
+
+if __name__ == "__main__":
+    result = TestResult()
+    suite = TestSuite()
+
+    for test_name in [
+        'test_result_success_run',
+        'test_result_failure_run',
+        'test_result_error_run',
+        'test_result_multiple_run',
+        'test_was_set_up',
+        'test_was_run',
+        'test_was_tear_down',
+        'test_template_method'
+    ]:
+        suite.add_test(TestCaseTest(test_name))
+
+    for test_name in [
+        'test_suite_size',
+        'test_suite_success_run',
+        'test_suite_multiple_run'
+    ]:
+        suite.add_test(TestSuiteTest(test_name))
+
+    suite.run(result)
+    print(result.summary())
+
