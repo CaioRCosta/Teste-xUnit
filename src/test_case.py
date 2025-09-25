@@ -1,0 +1,56 @@
+# código do framework
+class TestCase:
+
+    def __init__(self, test_method_name):
+        self.test_method_name = test_method_name
+
+    def run(self, result=None):
+        if result:
+            result.test_started()
+        self.set_up()
+        try:
+            test_method = getattr(self, self.test_method_name)
+            test_method()
+        except AssertionError:
+            if result:
+                result.add_failure(self.test_method_name)
+        except Exception:
+            if result:
+                result.add_error(self.test_method_name)
+        self.tear_down()
+
+    def set_up(self):
+        pass
+
+    def tear_down(self):
+        pass
+
+
+# classe de teste exemplo
+class MyTest(TestCase):
+
+    def set_up(self):
+        print('set_up')
+
+    def tear_down(self):
+        print('tear_down')
+
+    def test_a(self):
+        print('test_a')
+
+    def test_b(self):
+        print('test_b')
+
+    def test_c(self):
+        print('test_c')
+
+
+# rodar os testes manualmente
+if __name__ == "__main__":
+    test = MyTest('test_a')
+    test.run()
+    test = MyTest('test_b')
+    test.run()
+    test = MyTest('test_c')
+    test.run()
+
